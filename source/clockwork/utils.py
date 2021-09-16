@@ -215,12 +215,12 @@ def principal_angle(unwrapped_angle, *, degrees=False, full_arc=None):
     to_deg = np.rad2deg if degrees else lambda x: x
     if full_arc is not None:
         to_rad = lambda arc: arc * 2 * np.pi / full_arc
-        to_deg = lambda arc: arc * full_arc / 2 * np.pi
+        to_deg = lambda rad: full_arc * rad / (2 * np.pi)
     return to_deg(np.angle(np.exp(to_rad(np.asarray(unwrapped_angle)) * 1j)))
 
 
 def circular_sieve(input_angles, start_angle, end_angle, *, degrees=False,
-                   full_arc=None):
+                   full_arc=None, inclusive=True):
     """
     Pass angles through a sieve or filter to determine whether they are inside or outside of
     a circular sector.
@@ -246,6 +246,8 @@ def circular_sieve(input_angles, start_angle, end_angle, *, degrees=False,
             - a circle turning from 0 to 1 representing normalized digital frequency (0.5 is Nyquist);
             - a circle turning from 0 to 24 hours representing time of day.
             - a circle turning from 0 to 365.2422 days representing time of year.
+    inclusive: boolean, optional
+        Whether the bounds are inclusive or exclusive.
 
     Returns
     -------
@@ -276,7 +278,7 @@ def circular_sieve(input_angles, start_angle, end_angle, *, degrees=False,
     start_angle = principal_angle(start_angle, degrees=degrees, full_arc=full_arc)
     end_angle = principal_angle(end_angle, degrees=degrees, full_arc=full_arc)
 
-    no_cut_mask = start_angle <= end_angle
+    no_cut_mask = start_angle <= end_angle if inclusive else start_angle < end_angle
     branch_cut_mask = ~no_cut_mask
     if np.isscalar(branch_cut_mask):
         scalar_branch_cut_or_vector = branch_cut_mask
@@ -286,9 +288,15 @@ def circular_sieve(input_angles, start_angle, end_angle, *, degrees=False,
         if np.isscalar(input_angles):
             input_angles = np.ones_like(start_angle) * input_angles
     mask = np.empty_like(input_angles, dtype=bool)
-    mask[no_cut_mask] = (input_angles[no_cut_mask] >= start_angle[no_cut_mask]) & (input_angles[no_cut_mask] <= end_angle[no_cut_mask])
+    if inclusive:
+        mask[no_cut_mask] = (input_angles[no_cut_mask] >= start_angle[no_cut_mask]) & (input_angles[no_cut_mask] <= end_angle[no_cut_mask])
+    else:
+        mask[no_cut_mask] = (input_angles[no_cut_mask] > start_angle[no_cut_mask]) & (input_angles[no_cut_mask] < end_angle[no_cut_mask])
     if scalar_branch_cut_or_vector:
-        mask[branch_cut_mask] = (input_angles[branch_cut_mask] >= start_angle[branch_cut_mask]) | (input_angles[branch_cut_mask] <= end_angle[branch_cut_mask])
+        if inclusive:
+            mask[branch_cut_mask] = (input_angles[branch_cut_mask] >= start_angle[branch_cut_mask]) | (input_angles[branch_cut_mask] <= end_angle[branch_cut_mask])
+        else:
+            mask[branch_cut_mask] = (input_angles[branch_cut_mask] > start_angle[branch_cut_mask]) | (input_angles[branch_cut_mask] < end_angle[branch_cut_mask])
     return _scalar_from_0D_array(mask)
 
 

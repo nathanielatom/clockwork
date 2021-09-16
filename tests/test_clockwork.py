@@ -16,3 +16,11 @@ def test_circular_math():
     # consider replacing values for this case with np.nan and np.inf respectively
     assert cw.circular_mean(angles) == 0
     assert np.allclose(np.round(cw.circular_std(angles), 2), 8.64) # infinity ~= 8.64 I guess lol
+
+
+# @pytest.mark.parametrize()
+# def test_principal_angle():
+
+
+# @pytest.mark.parametrize()
+# def test_circular_sieve()

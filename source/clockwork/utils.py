@@ -210,6 +210,15 @@ def circular_std(input_angles, *, degrees=False,
     return np.sqrt(-2 * np.log(np.abs(complex_mean)))
 
 
+def principal_angle(unwrapped_angle, *, degrees=False, full_arc=None):
+    to_rad = np.deg2rad if degrees else lambda x: x
+    to_deg = np.rad2deg if degrees else lambda x: x
+    if full_arc is not None:
+        to_rad = lambda arc: arc * 2 * np.pi / full_arc
+        to_deg = lambda arc: arc * full_arc / 2 * np.pi
+    return to_deg(np.angle(np.exp(to_rad(np.asarray(unwrapped_angle)) * 1j)))
+
+
 def circular_sieve(input_angles, start_angle, end_angle, *, degrees=False,
                    full_arc=None):
     """
@@ -261,17 +270,11 @@ def circular_sieve(input_angles, start_angle, end_angle, *, degrees=False,
     if shape_start != shape_end:
         message = f'start_angle shape {shape_start} and end_angle shape {shape_end} must be the same'
         raise ValueError(message)
-    to_rad = np.deg2rad if degrees else lambda x: x
-    to_deg = np.rad2deg if degrees else lambda x: x
-    if full_arc is not None:
-        to_rad = lambda arc: arc * 2 * np.pi / full_arc
-        to_deg = lambda arc: arc * full_arc / 2 * np.pi
 
     # convert to [-pi, pi) or [-180, 180)
-    principal_angle = lambda theta: to_deg(np.angle(np.exp(to_rad(np.asarray(theta)) * 1j)))
-    input_angles = principal_angle(input_angles)
-    start_angle = principal_angle(start_angle)
-    end_angle = principal_angle(end_angle)
+    input_angles = principal_angle(input_angles, degrees=degrees, full_arc=full_arc)
+    start_angle = principal_angle(start_angle, degrees=degrees, full_arc=full_arc)
+    end_angle = principal_angle(end_angle, degrees=degrees, full_arc=full_arc)
 
     no_cut_mask = start_angle <= end_angle
     branch_cut_mask = ~no_cut_mask

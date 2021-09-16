@@ -31,7 +31,7 @@ Are run using [pytest](https://docs.pytest.org), in the root of the repo, simply
 Actually let's make this TBD. The docstrings for each function can be accessed with `?` in ipython, for example `clockwork.utils.circular_mean?`.
 
 Future:
-Are built using [sphinx](https://sphinx-doc.org), in the root of the repo, simply run `make html`. Or `make clean` to delete.
+Are built using [sphinx](https://www.sphinx-doc.org/en/master/), in the root of the repo, simply run `make html`. Or `make clean` to delete.
 
 ## Continuous Integration
 
